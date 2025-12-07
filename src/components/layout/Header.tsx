@@ -1,20 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
-
-const navItems = [
-  { label: 'Home', href: '#home' },
-  { label: 'About', href: '#about' },
-  { label: 'Instruments', href: '#instruments' },
-  { label: 'Services', href: '#services' },
-  { label: 'Policies', href: '#policies' },
-  { label: 'Training', href: '#training' },
-  { label: 'Contact', href: '#contact' },
-];
+import { navItems } from '@/data/nav';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -63,7 +54,7 @@ export function Header() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <a href="#home" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-3 group">
             <div className={cn(
               "w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300",
               isScrolled 
@@ -91,9 +82,9 @@ export function Header() {
           {/* Desktop Navigation with Auth inline */}
           <nav className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.label}
-                href={item.href}
+                to={item.href}
                 className={cn(
                   "px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-white/10",
                   isScrolled 
@@ -102,7 +93,7 @@ export function Header() {
                 )}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
             
             {/* Auth inline with nav */}
@@ -154,9 +145,9 @@ export function Header() {
           <nav className="lg:hidden mt-4 py-4 border-t border-white/10">
             <div className="flex flex-col gap-2">
               {navItems.map((item) => (
-                <a
+                <Link
                   key={item.label}
-                  href={item.href}
+                  to={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
                     "px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300",
@@ -166,7 +157,7 @@ export function Header() {
                   )}
                 >
                   {item.label}
-                </a>
+                </Link>
               ))}
               {user ? (
                 <Button variant="hero" size="lg" className="mt-4" onClick={handleLogout}>

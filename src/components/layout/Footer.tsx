@@ -1,18 +1,5 @@
 import { Mail, Phone, MapPin, ExternalLink, Facebook, Twitter, Linkedin, Youtube } from 'lucide-react';
-
-const quickLinks = [
-  { label: 'Sample Request Form', href: '#' },
-  { label: 'Tariff Sheet', href: '#' },
-  { label: 'Usage Policy', href: '#' },
-  { label: 'Downloads', href: '#' },
-];
-
-const instruments = [
-  { label: 'FE-SEM', href: '#' },
-  { label: 'FTIR Spectrometer', href: '#' },
-  { label: 'XRD System', href: '#' },
-  { label: 'UV-Vis Spectrophotometer', href: '#' },
-];
+import { footerQuickLinks, footerInstruments } from '@/data/nav';
 
 export function Footer() {
   return (
@@ -53,7 +40,7 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-bold text-lg">Quick Links</h3>
             <ul className="space-y-3">
-              {quickLinks.map((link) => (
+              {footerQuickLinks.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
@@ -71,7 +58,7 @@ export function Footer() {
           <div className="space-y-4">
             <h3 className="font-bold text-lg">Instruments</h3>
             <ul className="space-y-3">
-              {instruments.map((link) => (
+              {footerInstruments.map((link) => (
                 <li key={link.label}>
                   <a
                     href={link.href}
