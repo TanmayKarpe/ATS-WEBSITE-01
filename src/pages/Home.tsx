@@ -10,8 +10,8 @@ export default function HomePage() {
   return (
     <>
       <HeroSection />
-      <AboutSection />
       <LeadershipSection />
+      <AboutSection />
       <InstrumentsSection />
       <ServicesSection />
       <AIAssistantSection />

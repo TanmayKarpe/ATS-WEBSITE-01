@@ -10,8 +10,8 @@ export default function AboutPage() {
           <p className="text-xl text-muted-foreground">Learn more about our facility, mission, and the team behind it.</p>
         </div>
       </div>
-      <AboutSection />
       <LeadershipSection />
+      <AboutSection />
     </>
   );
 }
