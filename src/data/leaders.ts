@@ -1,33 +1,58 @@
-export interface LeaderMember {
-  id: number;
+export type Leader = {
+  id: string;
   name: string;
-  profession: string;
-  image: string;
-}
+  role: string;
+  qualifications?: string;
+  bio: string;
+  email?: string[];
+  phone?: string[];
+  achievements?: string;
+  dob?: string;
+  image?: string;
+};
 
-export const leaders: LeaderMember[] = [
+export const leaders: Leader[] = [
   {
-    id: 1,
-    name: "Dr. Rajesh Kumar",
-    profession: "Director, SAIF",
-    image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=300&fit=crop&crop=face",
+    id: 'governor',
+    name: 'Shri Acharya Devvrat',
+    role: 'Governor of Maharashtra & Gujarat (Chancellor)',
+    qualifications: 'Graduate; Postgraduate; B.Ed.; Diploma in Yoga Science; Doctor of Naturopathy and Yogic Science',
+    bio: 'Experienced educationist with 45+ years in teaching and administration. Former Governor of Himachal Pradesh and current Governor of Gujarat. Appointed to discharge duties of the Governor of Maharashtra in September 2025. Known for promoting natural farming, Vedic culture, social harmony, and youth development.',
+    achievements: 'Distinguished career spanning decades in education and public service; advocate for Vedic culture and natural farming; champion of youth development and social harmony',
+    dob: '18 January 1959',
+    image: '/leaders/governor.jpg',
   },
   {
-    id: 2,
-    name: "Dr. Priya Sharma",
-    profession: "Deputy Director",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&h=300&fit=crop&crop=face",
+    id: 'vice-chancellor',
+    name: 'Prof. V. L. Maheshwari',
+    role: 'Vice-Chancellor',
+    qualifications: 'M.Sc. (Biochemistry), Ph.D.',
+    bio: 'Biochemistry expert serving as Vice-Chancellor of KBCNMU, Jalgaon.',
+    email: ['vco@nmu.ac.in', 'vc@nmu.ac.in'],
+    phone: ['+91-257-2257204', '+91-257-2257206'],
+    image: '/leaders/vice-chancellor.jpg',
   },
   {
-    id: 3,
-    name: "Dr. Amit Patel",
-    profession: "Chief Technical Officer",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&crop=face",
+    id: 'pro-vice-chancellor',
+    name: 'Prof. S. T. Ingle',
+    role: 'Pro-Vice-Chancellor',
+    qualifications: 'M.Sc. (Environmental Science), Ph.D.',
+    bio: 'Senior professor with major contributions in Environmental Science, NAAC accreditation, and university administration. Took office as Pro-Vice-Chancellor on 05 July 2022.',
+    email: ['pvc@nmu.ac.in', 'pvcresearch@nmu.ac.in'],
+    image: '/leaders/pro-vc.jpg',
   },
   {
-    id: 4,
-    name: "Dr. Sunita Verma",
-    profession: "Research Coordinator",
-    image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=300&h=300&fit=crop&crop=face",
+    id: 'registrar',
+    name: 'Dr. Vinod Patil',
+    role: 'Registrar',
+    qualifications: 'Ph.D.',
+    bio: 'Serving as Registrar of KBCNMU, responsible for administrative coordination and university operations.',
+    email: ['registrar@nmu.ac.in'],
+    phone: ['+91-257-2257215'],
+    image: '/leaders/registrar.jpg',
   },
 ];
+
+export function getLeaderById(id: string): Leader | undefined {
+  return leaders.find((leader) => leader.id === id);
+}
