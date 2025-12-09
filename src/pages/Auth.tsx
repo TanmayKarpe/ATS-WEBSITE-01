@@ -25,6 +25,8 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    if (!supabase) return;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -36,13 +38,17 @@ const Auth = () => {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        navigate("/");
+    if (supabase) {
+      if (supabase) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          setSession(session);
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            navigate("/");
+          }
+        });
       }
-    });
+    }
 
     return () => subscription.unsubscribe();
   }, [navigate]);
@@ -50,6 +56,15 @@ const Auth = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!supabase) {
+      toast({
+        title: "Feature Unavailable",
+        description: "Online authentication is currently disabled",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       emailSchema.parse(email);
       passwordSchema.parse(password);
@@ -90,6 +105,15 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!supabase) {
+      toast({
+        title: "Feature Unavailable",
+        description: "Online authentication is currently disabled",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       emailSchema.parse(email);
       passwordSchema.parse(password);
@@ -146,6 +170,16 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+      {!supabase && (
+        <div className="fixed top-4 left-4 right-4 bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 text-yellow-600 text-center">
+          Online authentication is currently unavailable
+        </div>
+      )}
+      {!supabase && (
+        <div className="fixed top-4 left-4 right-4 bg-yellow-500/20 border border-yellow-500 rounded-lg p-4 text-yellow-600 text-center">
+          Online authentication is currently unavailable
+        </div>
+      )}
       <div className="w-full max-w-md">
         {/* Back to Home */}
         <Button
@@ -201,6 +235,7 @@ const Auth = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={!supabase}
                       />
                     </div>
                   </div>
@@ -219,6 +254,7 @@ const Auth = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={!supabase}
                       />
                     </div>
                   </div>
@@ -226,7 +262,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
-                    disabled={loading}
+                    disabled={loading || !supabase}
                   >
                     {loading ? "Signing in..." : "Sign In"}
                   </Button>
@@ -250,6 +286,7 @@ const Auth = () => {
                         onChange={(e) => setFullName(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={!supabase}
                       />
                     </div>
                   </div>
@@ -268,6 +305,7 @@ const Auth = () => {
                         onChange={(e) => setEmail(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={!supabase}
                       />
                     </div>
                   </div>
@@ -286,6 +324,7 @@ const Auth = () => {
                         onChange={(e) => setPassword(e.target.value)}
                         className="pl-10"
                         required
+                        disabled={!supabase}
                       />
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -296,7 +335,7 @@ const Auth = () => {
                   <Button
                     type="submit"
                     className="w-full bg-gradient-to-r from-primary to-secondary hover:opacity-90 transition-opacity"
-                    disabled={loading}
+                    disabled={loading || !supabase}
                   >
                     {loading ? "Creating account..." : "Create Account"}
                   </Button>

@@ -23,6 +23,8 @@ export function Header() {
   }, []);
 
   useEffect(() => {
+    if (!supabase) return;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -30,15 +32,18 @@ export function Header() {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-    });
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      });
+    }
 
     return () => subscription.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
+    if (!supabase) return;
     await supabase.auth.signOut();
   };
 
@@ -98,7 +103,11 @@ export function Header() {
             
             {/* Auth inline with nav */}
             <div className="flex items-center gap-2 ml-4 pl-4 border-l border-white/20">
-              {user ? (
+              {!supabase ? (
+                <span className="text-sm text-yellow-500">
+                  Online service unavailable
+                </span>
+              ) : user ? (
                 <>
                   <span className={cn(
                     "text-sm font-medium",
@@ -159,7 +168,11 @@ export function Header() {
                   {item.label}
                 </Link>
               ))}
-              {user ? (
+              {!supabase ? (
+                <div className="text-center text-yellow-500 p-4">
+                  Online service temporarily unavailable
+                </div>
+              ) : user ? (
                 <Button variant="hero" size="lg" className="mt-4" onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Logout

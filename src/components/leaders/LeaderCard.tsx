@@ -10,21 +10,22 @@ type Props = {
 export function LeaderCard({ leader }: Props) {
   return (
     <Link to={`/leadership/${leader.id}`} className="group">
-      <Card className="overflow-hidden border-0 bg-card hover:shadow-lg transition-shadow duration-300 h-full">
-        <div className="relative h-56 overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
-          {leader.image ? (
-            <img
-              src={leader.image}
-              alt={leader.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
-              <div className="text-center">
-                <p className="text-4xl font-bold text-primary/20">{leader.name.charAt(0)}</p>
+      <Card className="overflow-visible border-0 bg-card hover:shadow-lg transition-shadow duration-300 h-full">
+        {/* Circular Image Container - 150px on desktop, 120px on mobile */}
+        <div className="flex justify-center pt-8 pb-4">
+          <div className="relative w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 rounded-full overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10 shadow-md ring-2 ring-background">
+            {leader.image ? (
+              <img
+                src={leader.image}
+                alt={leader.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
+                <p className="text-5xl sm:text-6xl font-bold text-primary/20">{leader.name.charAt(0)}</p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         <CardContent className="pt-6">

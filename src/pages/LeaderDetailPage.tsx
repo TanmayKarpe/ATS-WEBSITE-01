@@ -43,13 +43,22 @@ export default function LeaderDetailPage() {
       <div className="max-w-4xl grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Image & Contact */}
         <div className="md:col-span-1">
-          {leader.image && (
-            <img
-              src={leader.image}
-              alt={leader.name}
-              className="w-full h-auto rounded-lg mb-6 object-cover"
-            />
-          )}
+          {/* Circular Portrait Image - 220px × 220px */}
+          <div className="flex justify-center mb-8">
+            <div className="relative w-48 h-48 sm:w-56 sm:h-56 rounded-full overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10 shadow-lg ring-4 ring-background">
+              {leader.image ? (
+                <img
+                  src={leader.image}
+                  alt={leader.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-secondary/20">
+                  <p className="text-7xl font-bold text-primary/20">{leader.name.charAt(0)}</p>
+                </div>
+              )}
+            </div>
+          </div>
           
           {/* Contact Information */}
           <div className="bg-muted/50 rounded-lg p-6 space-y-4">
