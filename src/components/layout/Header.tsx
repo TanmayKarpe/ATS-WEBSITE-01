@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { navItems } from '@/data/nav';
+import { useAdminAuth } from '@/contexts/AdminAuthContext';
 
 export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -103,11 +104,7 @@ export function Header() {
             
             {/* Auth inline with nav */}
             <div className="flex items-center gap-2 ml-4 pl-4 border-l border-white/20">
-              {!supabase ? (
-                <span className="text-sm text-yellow-500">
-                  Online service unavailable
-                </span>
-              ) : user ? (
+              {user ? (
                 <>
                   <span className={cn(
                     "text-sm font-medium",
@@ -125,14 +122,25 @@ export function Header() {
                   </Button>
                 </>
               ) : (
-                <Button
-                  variant={isScrolled ? "default" : "heroOutline"}
-                  size="sm"
-                  onClick={() => navigate('/auth')}
-                >
-                  <User className="w-4 h-4 mr-1" />
-                  Login
-                </Button>
+                <>
+                  <Button
+                    variant={isScrolled ? "default" : "heroOutline"}
+                    size="sm"
+                    onClick={() => navigate('/auth')}
+                  >
+                    <User className="w-4 h-4 mr-1" />
+                    Login
+                  </Button>
+                  <Button
+                    variant={isScrolled ? "ghost" : "ghost"}
+                    size="sm"
+                    onClick={() => navigate('/admin/login')}
+                    title="Admin Portal"
+                    className="text-xs"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </>
               )}
             </div>
           </nav>
@@ -151,38 +159,73 @@ export function Header() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <nav className="lg:hidden mt-4 py-4 border-t border-white/10">
+          <nav className="lg:hidden mt-4 pb-4 border-t border-white/10">
             <div className="flex flex-col gap-2">
               {navItems.map((item) => (
                 <Link
                   key={item.label}
                   to={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
                   className={cn(
-                    "px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300",
+                    "px-3 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-white/10",
                     isScrolled 
-                      ? "text-foreground hover:bg-muted" 
-                      : "text-white hover:bg-white/10"
+                      ? "text-foreground hover:text-primary hover:bg-muted" 
+                      : "text-white/90 hover:text-white"
                   )}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.label}
                 </Link>
               ))}
-              {!supabase ? (
-                <div className="text-center text-yellow-500 p-4">
-                  Online service temporarily unavailable
-                </div>
-              ) : user ? (
-                <Button variant="hero" size="lg" className="mt-4" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
-              ) : (
-                <Button variant="hero" size="lg" className="mt-4" onClick={() => navigate('/auth')}>
-                  <User className="w-4 h-4 mr-2" />
-                  Login / Sign Up
-                </Button>
-              )}
+
+              {/* Mobile Auth Section */}
+              <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-white/10">
+                {user ? (
+                  <>
+                    <span className={cn(
+                      "text-sm font-medium px-3 py-2",
+                      isScrolled ? "text-foreground" : "text-white"
+                    )}>
+                      {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                    </span>
+                    <Button
+                      variant={isScrolled ? "outline" : "heroOutline"}
+                      size="sm"
+                      onClick={handleLogout}
+                      className="w-full justify-start"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant={isScrolled ? "default" : "heroOutline"}
+                      size="sm"
+                      onClick={() => {
+                        navigate('/auth');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full justify-start"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Login
+                    </Button>
+                    <Button
+                      variant={isScrolled ? "outline" : "heroOutline"}
+                      size="sm"
+                      onClick={() => {
+                        navigate('/admin/login');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full justify-start"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Admin Portal
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </nav>
         )}
