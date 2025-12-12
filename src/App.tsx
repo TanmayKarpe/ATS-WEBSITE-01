@@ -21,6 +21,15 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminLayout from "./components/admin/AdminLayout";
+import InstrumentsListPage from "./pages/admin/InstrumentsList";
+import InstrumentFormPage from "./pages/admin/InstrumentForm";
+import PricesListPage from "./pages/admin/PricesList";
+import PriceFormPage from "./pages/admin/PriceForm";
+import AnnouncementsListPage from "./pages/admin/AnnouncementsList";
+import AnnouncementFormPage from "./pages/admin/AnnouncementForm";
+import InfoBlocksListPage from "./pages/admin/InfoBlocksList";
+import InfoBlockFormPage from "./pages/admin/InfoBlockForm";
 
 const queryClient = new QueryClient();
 
@@ -49,14 +58,22 @@ const App = () => (
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route
-              path="/admin"
-              element={
-                <RequireAdmin>
-                  <AdminDashboard />
-                </RequireAdmin>
-              }
-            />
+            <Route path="/admin" element={<RequireAdmin><AdminLayout /></RequireAdmin>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="instruments" element={<InstrumentsListPage />} />
+              <Route path="instruments/:id" element={<InstrumentFormPage />} />
+              <Route path="instruments/new" element={<InstrumentFormPage />} />
+              <Route path="prices" element={<PricesListPage />} />
+              <Route path="prices/new" element={<PriceFormPage />} />
+              <Route path="prices/:id" element={<PriceFormPage />} />
+              <Route path="announcements" element={<AnnouncementsListPage />} />
+              <Route path="announcements/new" element={<AnnouncementFormPage />} />
+              <Route path="announcements/:id" element={<AnnouncementFormPage />} />
+              <Route path="info-blocks" element={<InfoBlocksListPage />} />
+              <Route path="info-blocks/new" element={<InfoBlockFormPage />} />
+              <Route path="info-blocks/:key" element={<InfoBlockFormPage />} />
+              <Route path="settings" element={<div />} />
+            </Route>
             {/* Catch-all - must be last */}
             <Route path="*" element={<NotFound />} />
           </Routes>
