@@ -30,6 +30,10 @@ import AnnouncementsListPage from "./pages/admin/AnnouncementsList";
 import AnnouncementFormPage from "./pages/admin/AnnouncementForm";
 import InfoBlocksListPage from "./pages/admin/InfoBlocksList";
 import InfoBlockFormPage from "./pages/admin/InfoBlockForm";
+import DepartmentsListPage from "./pages/admin/DepartmentsList";
+import DepartmentFormPage from "./pages/admin/DepartmentForm";
+import ConsultancyPage from "./pages/Consultancy";
+import DepartmentDetailPage from "./pages/DepartmentDetail";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +57,8 @@ const App = () => (
               <Route path="/leadership/:id" element={<LeaderDetailPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/consultancy" element={<ConsultancyPage />} />
+              <Route path="/departments/:slug" element={<DepartmentDetailPage />} />
             </Route>
             <Route path="/auth" element={<Auth />} />
             
@@ -72,6 +78,9 @@ const App = () => (
               <Route path="info-blocks" element={<InfoBlocksListPage />} />
               <Route path="info-blocks/new" element={<InfoBlockFormPage />} />
               <Route path="info-blocks/:key" element={<InfoBlockFormPage />} />
+              <Route path="departments" element={<DepartmentsListPage />} />
+              <Route path="departments/new" element={<DepartmentFormPage />} />
+              <Route path="departments/:slug" element={<DepartmentFormPage />} />
               <Route path="settings" element={<div />} />
             </Route>
             {/* Catch-all - must be last */}
