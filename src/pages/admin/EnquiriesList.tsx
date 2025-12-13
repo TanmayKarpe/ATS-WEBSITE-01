@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { listEnquiries, updateEnquiryStatus, deleteEnquiry } from '@/services/consultancyEnquiries'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
@@ -20,6 +21,8 @@ export default function EnquiriesList() {
       .catch((err) => setError(err.message || 'Failed to load'))
       .finally(() => setLoading(false))
   }, [])
+
+  const [viewing, setViewing] = useState<any | null>(null)
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
@@ -75,7 +78,23 @@ export default function EnquiriesList() {
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <Button variant="ghost" onClick={() => navigate(`/admin/enquiries/${q.id}`)}>View</Button>
+                  <Dialog open={viewing?.id === q.id} onOpenChange={(open) => setViewing(open ? q : null)}>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost">View</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Enquiry from {q.user_name}</DialogTitle>
+                        <DialogDescription>{q.user_email} — {q.department?.name}</DialogDescription>
+                      </DialogHeader>
+                      <div className="mt-2">{q.message}</div>
+                      <DialogFooter>
+                        <DialogClose asChild>
+                          <Button variant="ghost">Close</Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </TableCell>
             </TableRow>
