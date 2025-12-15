@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { createEnquiry } from '@/services/consultancyEnquiries'
+import { supabase } from '@/supabase/client'
 
 export default function ConsultancyPage() {
   const [departments, setDepartments] = useState<any[]>([])
@@ -46,22 +47,43 @@ export default function ConsultancyPage() {
     if (!pendingDept) return
     setSubmitting(true)
     setError(null)
+
+    // Normalise input values: trim and convert empty strings to null
+    const nameTrim = (formName || '').trim()
+    const emailTrim = (formEmail || '').trim()
+    const messageTrim = (formMessage || '').trim()
+
     try {
+      // Inspect the auth/session state before attempting the insert (temporary debug)
+      try {
+        const sessionResp = await supabase.auth.getSession()
+        const userResp = await supabase.auth.getUser()
+        // Avoid printing complete session (access_token). Print presence and safe user fields only.
+        console.debug('[Consultancy] sessionPresent:', !!sessionResp?.data?.session)
+        console.debug('[Consultancy] userId:', userResp?.data?.user?.id ?? null, 'email:', userResp?.data?.user?.email ?? null)
+        const roleContext = userResp?.data?.user ? 'authenticated' : 'anon'
+        console.debug('[Consultancy] roleContext', roleContext)
+      } catch (err) {
+        console.debug('[Consultancy] failed to read auth state', err)
+      }
+
+      // Build a minimal, sanitized payload for the insert.
+      // Only allowed fields, convert empty strings -> null, and never send undefined values.
       await createEnquiry({
         department_id: pendingDept.id,
-        user_name: formName || 'Anonymous',
-        user_email: formEmail || '',
-        message: formMessage || '',
-        status: 'new'
+        user_name: nameTrim || 'Anonymous',
+        user_email: emailTrim || '',
+        message: messageTrim || null,
       })
 
       const subject = `Consultancy Inquiry - ${pendingDept.name}`
-      const body = `Hello ${pendingDept.name} team,%0D%0A%0D%0AMy name is ${encodeURIComponent(formName || '[Your Name]')}%20from%20${encodeURIComponent('[Organization]')}. %0D%0A%0D%0A${encodeURIComponent(formMessage || '')}%0D%0A%0D%0APlease let me know the next steps and availability.%0D%0A%0D%0ABest regards,%0D%0A${encodeURIComponent(formName || '')}`
+      const body = `Hello ${pendingDept.name} team,%0D%0A%0D%0AMy name is ${encodeURIComponent(nameTrim || '[Your Name]')}%20from%20${encodeURIComponent('[Organization]')}. %0D%0A%0D%0A${encodeURIComponent(messageTrim || '')}%0D%0A%0D%0APlease let me know the next steps and availability.%0D%0A%0D%0ABest regards,%0D%0A${encodeURIComponent(nameTrim || '')}`
       const mailto = `mailto:${pendingDept.coordinator_email}?subject=${encodeURIComponent(subject)}&body=${body}`
       setIsDialogOpen(false)
       window.location.href = mailto
     } catch (err: any) {
-      setError(err?.message || 'Failed to create enquiry')
+      // Surface detailed error messages returned by Supabase, so users know why RLS failed
+      setError(err?.message || JSON.stringify(err) || 'Failed to create enquiry')
     } finally { setSubmitting(false) }
   }
 

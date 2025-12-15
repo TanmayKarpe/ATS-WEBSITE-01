@@ -9,6 +9,7 @@ export default function AdminLayout() {
   const sections = [
     { title: 'Dashboard', href: '/admin', icon: Home },
     { title: 'Instruments', href: '/admin/instruments', icon: Package },
+    { title: 'Components', href: '/admin/components', icon: Package },
     { title: 'Prices', href: '/admin/prices', icon: DollarSign },
     { title: 'Announcements', href: '/admin/announcements', icon: Bell },
     { title: 'Info Blocks', href: '/admin/info-blocks', icon: FileText },

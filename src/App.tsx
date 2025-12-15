@@ -12,6 +12,11 @@ import InstrumentsPage from "./pages/Instruments";
 import InstrumentDetailPage from "./pages/InstrumentDetail";
 import ServicesPage from "./pages/Services";
 import ServiceDetailPage from "./pages/ServiceDetail";
+import ComponentsPage from './pages/Components'
+import ComponentDetailPage from './pages/ComponentDetail'
+import ComponentsListPage from './pages/admin/ComponentsList'
+import ComponentFormPage from './pages/admin/ComponentForm'
+
 import FacilitiesPage from "./pages/Facilities";
 import FacilityDetailPage from "./pages/FacilityDetail";
 import LeaderDetailPage from "./pages/LeaderDetailPage";
@@ -60,6 +65,8 @@ const App = () => (
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/consultancy" element={<ConsultancyPage />} />
               <Route path="/departments/:slug" element={<DepartmentDetailPage />} />
+              <Route path="/components" element={<ComponentsPage />} />
+              <Route path="/components/:slug" element={<ComponentDetailPage />} />
             </Route>
             <Route path="/auth" element={<Auth />} />
             
@@ -83,6 +90,9 @@ const App = () => (
               <Route path="departments" element={<DepartmentsListPage />} />
               <Route path="departments/new" element={<DepartmentFormPage />} />
               <Route path="departments/:slug" element={<DepartmentFormPage />} />
+              <Route path="components" element={<ComponentsListPage />} />
+              <Route path="components/new" element={<ComponentFormPage />} />
+              <Route path="components/:id" element={<ComponentFormPage />} />
               <Route path="settings" element={<div />} />
             </Route>
             {/* Catch-all - must be last */}

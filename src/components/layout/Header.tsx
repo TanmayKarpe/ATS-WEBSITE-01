@@ -88,16 +88,18 @@ export function Header() {
           {/* Desktop Navigation with Auth inline */}
           <nav className="hidden lg:flex items-center gap-1">
             {(() => {
-              // Insert Consultancy between Services and Facilities without mutating original navItems
-              const navWithConsultancy = [...navItems];
-              const insertAfter = navWithConsultancy.findIndex((n) => n.label.toLowerCase() === 'services');
+              // Insert Consultancy and Components (Capabilities) between Services and Facilities
+              const navWithExtras = [...navItems];
+              const insertAfter = navWithExtras.findIndex((n) => n.label.toLowerCase() === 'services');
               const consultancyItem = { label: 'Consultancy', href: '/consultancy' };
+              const componentsItem = { label: 'Capabilities', href: '/components' };
               if (insertAfter >= 0) {
-                navWithConsultancy.splice(insertAfter + 1, 0, consultancyItem);
+                navWithExtras.splice(insertAfter + 1, 0, consultancyItem, componentsItem);
               } else {
-                navWithConsultancy.push(consultancyItem);
+                navWithExtras.push(consultancyItem);
+                navWithExtras.push(componentsItem);
               }
-              return navWithConsultancy.map((item) => (
+              return navWithExtras.map((item) => (
               <Link
                 key={item.label}
                 to={item.href}
