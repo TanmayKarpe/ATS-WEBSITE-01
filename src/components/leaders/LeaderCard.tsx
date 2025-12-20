@@ -28,12 +28,11 @@ export function LeaderCard({ leader }: Props) {
           </div>
         </div>
 
-        <CardContent className="pt-6">
-          <h3 className="text-lg font-bold mb-1">{leader.name}</h3>
-          <p className="text-sm text-primary font-semibold mb-3">{leader.role}</p>
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{leader.bio}</p>
+        <CardContent className="pt-6 pb-6 flex flex-col items-center text-center">
+          <h3 className="text-lg font-bold mb-2">{leader.name}</h3>
+          <p className="text-sm text-primary font-semibold mb-4">{leader.role}</p>
           
-          <div className="flex items-center gap-2 text-primary group-hover:gap-3 transition-all">
+          <div className="flex items-center gap-1 text-primary group-hover:gap-2 transition-all mt-auto">
             <span className="text-sm font-medium">View Profile</span>
             <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </div>

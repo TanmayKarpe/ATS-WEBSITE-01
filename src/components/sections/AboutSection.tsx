@@ -12,7 +12,7 @@ const aboutCards = [
   {
     icon: Beaker,
     title: 'What We Do',
-    description: 'We offer comprehensive analytical and characterization services using advanced instruments like FE-SEM, XRD, FTIR, UV-Vis, GC-MS, and more for materials science, chemistry, biology, and physics research.',
+    description: 'We provide high-precision analytical and characterization solutions across a broad spectrum of scientific disciplines. Our facility supports advanced research in materials science, chemistry, biology, and physics, delivering the critical data and insights needed to drive innovation and technical breakthroughs.',
     color: 'text-accent',
     bgColor: 'bg-accent/10',
   },
@@ -26,7 +26,7 @@ const aboutCards = [
   {
     icon: Rocket,
     title: 'Our Vision',
-    description: 'To become one of India\'s most advanced and accessible analytical instrument centers, fostering cutting-edge research and innovation while nurturing the next generation of scientists.',
+    description: 'To lead as a center of excellence in analytical characterization, providing seamless access to advanced instrumentation for both academic researchers and industrial partners. We are committed to supporting local industry through specialized sample analysis, fostering transformative research, and nurturing the scientific talent of tomorrow.',
     color: 'text-emerald-500',
     bgColor: 'bg-emerald-500/10',
   },
