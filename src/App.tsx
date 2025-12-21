@@ -23,6 +23,7 @@ import LeaderDetailPage from "./pages/LeaderDetailPage";
 import CoordinatorProfile from "./pages/CoordinatorProfile";
 import PricingPage from "./pages/Pricing";
 import ContactPage from "./pages/Contact";
+import SubmitRequestPage from "./pages/SubmitRequest";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import AdminLoginPage from "./pages/admin/AdminLoginPage";
@@ -65,6 +66,7 @@ const App = () => (
                             <Route path="/coordinator" element={<CoordinatorProfile />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/contact" element={<ContactPage />} />
+              <Route path="/submit-request" element={<SubmitRequestPage />} />
               <Route path="/consultancy" element={<ConsultancyPage />} />
               <Route path="/departments/:slug" element={<DepartmentDetailPage />} />
               <Route path="/components" element={<ComponentsPage />} />

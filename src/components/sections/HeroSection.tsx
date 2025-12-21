@@ -60,9 +60,11 @@ export function HeroSection() {
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
             </Button>
           </Link>
-          <Button variant="heroOutline" size="xl">
-            Submit Sample Request
-          </Button>
+          <Link to="/submit-request">
+            <Button variant="heroOutline" size="xl">
+              Submit Sample Request
+            </Button>
+          </Link>
         </div>
 
         {/* Stats */}
