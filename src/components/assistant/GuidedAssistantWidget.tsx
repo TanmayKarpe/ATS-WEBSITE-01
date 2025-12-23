@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/supabase/client';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Loader2, MessageCircle, RefreshCcw, Search, X } from 'lucide-react';
+import { ArrowRight, Loader2, MessageCircle, RefreshCcw, Search, X, DollarSign, FileText, Phone, Layers } from 'lucide-react';
 
 const START_NODE_KEY = 'start';
 
@@ -58,6 +58,7 @@ export function GuidedAssistantWidget() {
 
   const [intentAnswer, setIntentAnswer] = useState<string | null>(null);
   const [intentLoading, setIntentLoading] = useState(false);
+  const [currentIntentType, setCurrentIntentType] = useState<string | null>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -72,6 +73,7 @@ export function GuidedAssistantWidget() {
     setSelectedInstrument(null);
     setIntentAnswer(null);
     setIntentLoading(false);
+    setCurrentIntentType(null);
   }, []);
 
   const loadOptions = useCallback(async (nodeId?: number) => {
@@ -174,7 +176,7 @@ export function GuidedAssistantWidget() {
     if (!selectedInstrument) return;
     if (intent.action === 'booking') {
       setIsOpen(false);
-      navigate('/submit-request');
+      navigate(selectedInstrument.code ? `/instruments/${selectedInstrument.code}` : '/instruments');
       return;
     }
 
@@ -186,6 +188,7 @@ export function GuidedAssistantWidget() {
 
     setIntentLoading(true);
     setIntentAnswer(null);
+    setCurrentIntentType(intent.guideType);
     const { data, error } = await supabase
       .from('instrument_guides')
       .select('short_answer')
@@ -222,6 +225,91 @@ export function GuidedAssistantWidget() {
   );
 
   const subtleText = isHome ? 'text-white/80' : 'text-slate-600';
+
+  // Answer Card Rendering
+  const renderAnswerCards = () => {
+    if (!intentAnswer || !currentIntentType) return null;
+
+    const cardBaseClass = cn(
+      'rounded-xl border px-4 py-3 transition-all duration-200',
+      isHome
+        ? 'bg-slate-900/40 border-white/10 hover:border-secondary/40 hover:shadow-lg hover:shadow-secondary/10'
+        : 'bg-slate-50 border-slate-200 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10'
+    );
+
+    // Get icon based on intent type
+    const getIntentIcon = () => {
+      switch (currentIntentType) {
+        case 'pricing': return DollarSign;
+        case 'sample_requirement': return FileText;
+        case 'contact': return Phone;
+        case 'capability': return Layers;
+        default: return FileText;
+      }
+    };
+
+    const Icon = getIntentIcon();
+
+    // Special handling for pricing (three cards)
+    if (currentIntentType === 'pricing') {
+      // Parse pricing data - expect format like "Internal: ₹500 + GST | Academic: ₹800 + GST | Industry: ₹1500 + GST"
+      const pricingMatch = intentAnswer.match(/Internal[:\s]*([^|]+)\|?\s*Academic[:\s]*([^|]+)\|?\s*Industry[:\s]*(.+)/i);
+      
+      if (pricingMatch) {
+        const [, internalPrice, academicPrice, industryPrice] = pricingMatch;
+        const categories = [
+          { label: 'Internal', price: internalPrice.trim(), color: 'emerald' },
+          { label: 'Academic', price: academicPrice.trim(), color: 'blue' },
+          { label: 'Industry', price: industryPrice.trim(), color: 'amber' }
+        ];
+
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 mb-3">
+              <Icon size={16} className={isHome ? 'text-secondary' : 'text-primary'} />
+              <span className="text-xs font-semibold uppercase tracking-wide">Pricing</span>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+              {categories.map(({ label, price }) => {
+                // Extract base price and GST note
+                const priceMatch = price.match(/(.+?)(\+\s*GST.*)?$/i);
+                const basePrice = priceMatch ? priceMatch[1].trim() : price;
+                const gstNote = priceMatch && priceMatch[2] ? priceMatch[2].trim() : '';
+
+                return (
+                  <div
+                    key={label}
+                    className={cn(
+                      cardBaseClass,
+                      'flex-1 min-w-[140px] snap-start'
+                    )}
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="text-xs font-medium opacity-70">{label}</span>
+                      <span className="text-base font-semibold">{basePrice}</span>
+                      {gstNote && (
+                        <span className="text-[10px] opacity-50">{gstNote}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      }
+    }
+
+    // Default answer card (single card for other intents)
+    return (
+      <div className={cardBaseClass}>
+        <div className="flex items-start gap-3">
+          <Icon size={16} className={cn('mt-0.5 shrink-0', isHome ? 'text-secondary' : 'text-primary')} />
+          <div className="text-sm leading-relaxed">{intentAnswer}</div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
@@ -348,16 +436,7 @@ export function GuidedAssistantWidget() {
                             <span>Fetching guidance…</span>
                           </div>
                         )}
-                        {intentAnswer && (
-                          <div
-                            className={cn(
-                              'rounded-xl border px-3 py-2 text-sm leading-relaxed',
-                              isHome ? 'border-white/10 bg-white/5 text-white' : 'border-slate-200 bg-slate-50'
-                            )}
-                          >
-                            {intentAnswer}
-                          </div>
-                        )}
+                        {intentAnswer && renderAnswerCards()}
                       </div>
                     )}
                   </div>
@@ -394,8 +473,10 @@ export function GuidedAssistantWidget() {
           size="lg"
           variant="glass"
           className={cn(
-            'shadow-lg rounded-full px-4 py-6 h-auto gap-3',
-            isHome ? 'bg-slate-950/80 text-white border-white/10' : 'bg-white text-slate-900'
+            'h-auto gap-3 shadow-lg transition-all duration-300',
+            isHome
+              ? 'rounded-full px-6 py-5 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-950 text-white border-white/20 hover:border-white/30 hover:shadow-xl hover:shadow-white/5'
+              : 'rounded-full px-4 py-6 bg-white text-slate-900'
           )}
           onClick={() => setIsOpen(true)}
         >
