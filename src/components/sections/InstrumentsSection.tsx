@@ -22,6 +22,11 @@ export function InstrumentsSection({ featuredOnly = false }: { featuredOnly?: bo
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      console.log('[TEMP DEBUG][InstrumentsSection] Loading instruments', {
+        hasSupabase: Boolean(supabase),
+        featuredOnly,
+        mode: import.meta.env.MODE,
+      });
       try {
         if (!supabase) {
           console.error('Supabase client not initialized. Check environment variables.');
@@ -29,6 +34,7 @@ export function InstrumentsSection({ featuredOnly = false }: { featuredOnly?: bo
           setLoading(false);
           return;
         }
+        console.log('[TEMP DEBUG][InstrumentsSection] Firing instruments query');
         let query = supabase
           .from('instruments')
           .select('*');
@@ -67,6 +73,9 @@ export function InstrumentsSection({ featuredOnly = false }: { featuredOnly?: bo
           } as Instrument;
         });
         setItems(mapped);
+        if (!mapped.length) {
+          console.warn('[TEMP DEBUG][InstrumentsSection] Supabase returned zero instruments');
+        }
         console.log(`Successfully loaded ${mapped.length} instruments from Supabase`);
       } catch (e: any) {
         if (!cancelled) {
@@ -81,7 +90,7 @@ export function InstrumentsSection({ featuredOnly = false }: { featuredOnly?: bo
     return () => {
       cancelled = true;
     };
-  }, [imageByName]);
+  }, [featuredOnly, imageByName]);
 
   return (
     <section id="instruments" className="py-24 bg-muted/50 relative overflow-hidden">

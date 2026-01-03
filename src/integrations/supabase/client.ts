@@ -7,7 +7,25 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 let supabaseInstance: ReturnType<typeof createClient<Database>> | null = null;
 
-if (supabaseUrl && supabaseAnonKey) {
+const logPrefix = '[TEMP DEBUG][Supabase]';
+
+const mask = (value?: string | null) => {
+  if (!value) return 'missing';
+  if (value.length <= 8) return 'redacted';
+  return `${value.slice(0, 4)}...${value.slice(-4)}`;
+};
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  // Warn loudly in production builds so Netlify deployments surface misconfigured env vars
+  console.warn(`${logPrefix} Env vars missing; client disabled`, {
+    hasUrl: Boolean(supabaseUrl),
+    hasAnonKey: Boolean(supabaseAnonKey),
+    mode: import.meta.env.MODE,
+  });
+} else {
+  if (supabaseAnonKey.toLowerCase().includes('service')) {
+    console.warn(`${logPrefix} Service role key detected; use anon key in frontend deployments`);
+  }
   supabaseInstance = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
       storage: localStorage,
@@ -15,8 +33,18 @@ if (supabaseUrl && supabaseAnonKey) {
       autoRefreshToken: true,
     }
   });
-} else {
-  console.warn("Supabase disabled: missing environment variables");
+
+  // Confirm client initialization without leaking secrets
+  try {
+    const host = new URL(supabaseUrl).host;
+    console.log(`${logPrefix} Client initialized`, {
+      host,
+      anonKey: mask(supabaseAnonKey),
+      mode: import.meta.env.MODE,
+    });
+  } catch (err) {
+    console.warn(`${logPrefix} Failed to parse Supabase URL`, { error: err });
+  }
 }
 
 export const supabase = supabaseInstance;

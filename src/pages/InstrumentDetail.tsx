@@ -44,18 +44,41 @@ export default function InstrumentDetailPage() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      console.log('[TEMP DEBUG][InstrumentDetail] Loading instrument', {
+        code,
+        hasSupabase: Boolean(supabase),
+        mode: import.meta.env.MODE,
+      });
       if (!code) {
         setError('Instrument not found');
         setLoading(false);
         return;
       }
+      if (!supabase) {
+        console.warn('[TEMP DEBUG][InstrumentDetail] Supabase client missing; check env vars');
+        setError('Data service unavailable');
+        setLoading(false);
+        return;
+      }
       try {
+        console.log('[TEMP DEBUG][InstrumentDetail] Firing instrument detail query');
         const { data, error } = await supabase
           .from('instruments')
           .select('*')
           .eq('code', code)
           .maybeSingle();
-        if (error) throw error;
+        if (error) {
+          console.error('[TEMP DEBUG][InstrumentDetail] Supabase query error', {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+          });
+          throw error;
+        }
+        if (!data) {
+          console.warn('[TEMP DEBUG][InstrumentDetail] No instrument found', { code });
+        }
         if (!cancelled) setRow(data || null);
       } catch (e: any) {
         if (!cancelled) setError(e?.message || 'Failed to load instrument');
