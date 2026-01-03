@@ -4,18 +4,17 @@ import { supabase } from '@/integrations/supabase/client';
 import { instruments as staticInstruments } from '@/data/instruments';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle, ChevronDown, Mail, Phone, Info } from 'lucide-react';
+import { AlertCircle, Mail, Phone, Info } from 'lucide-react';
 import { buildGmailUrl } from '@/lib/email';
 
 export default function InstrumentDetailPage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
-  const [specsOpen, setSpecsOpen] = useState(true);
+  const [visibleSections, setVisibleSections] = useState<Set<string>>(new Set());
   
   // Booking form state
   const [userCategory, setUserCategory] = useState<string>('');
@@ -90,6 +89,25 @@ export default function InstrumentDetailPage() {
     return () => { cancelled = true };
   }, [code]);
 
+  // Scroll-based animation observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVisibleSections((prev) => new Set(prev).add(entry.target.id));
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '-50px' }
+    );
+
+    const sections = document.querySelectorAll('[data-animate]');
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, [row]);
+
   if (loading) return <div className="container py-12 text-muted-foreground">Loading…</div>;
   
   if (error || !row) {
@@ -122,14 +140,14 @@ export default function InstrumentDetailPage() {
   const name: string = row?.name || String(code);
   const manufacturer: string = row?.make || row?.manufacturer || '';
   const modelNumber: string = row?.model || '';
-  const overview: string = row?.description || '';
+  // DO NOT use overview/description - removed per requirement
   const contactName: string = row?.contact_name || '';
   const contactEmail: string = row?.contact_email || row?.coordinator_email || 'ats@nmu.ac.in';
   const contactPhone: string = row?.contact_phone || '';
   const priceInternal = row?.price_internal || null;
   const priceExternal = row?.price_external || null;
   const priceIndustry = row?.price_industry || null;
-  const image = imageByName.get((name || code || '').toLowerCase());
+  const image = imageByName.get((name || code || '').toLowerCase()) || '/placeholder-instrument.svg';
   
   // Parse applications (array or text)
   let applications: string[] = [];
@@ -273,358 +291,421 @@ This request was generated through the ATS website.`;
 
   return (
     <div className="container py-12">
+      <style>{`
+        [data-animate] {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        [data-animate].visible {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      `}</style>
+
       <div className="mb-8">
         <Link to="/instruments" className="text-sm text-muted-foreground hover:text-foreground underline">
           ← Back to instruments
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
-        {/* LEFT COLUMN: Image & Core Info */}
-        <div className="space-y-6">
-          {/* Instrument Image */}
-          <div className="rounded-lg overflow-hidden bg-muted">
-            {image ? (
-              <img src={image} alt={name} className="w-full h-64 object-cover" />
-            ) : (
-              <div className="w-full h-64 flex items-center justify-center text-muted-foreground">
-                No image available
+      {/* TOP SECTION - TWO COLUMN LAYOUT */}
+      <div className="mb-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[420px_1fr] gap-12 items-start">
+          
+          {/* LEFT COLUMN: Image + Technical Specifications */}
+          <div className="space-y-8">
+            {/* Instrument Image */}
+            <div className="rounded-xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 shadow-2xl ring-1 ring-black/5">
+              <img 
+                src={image} 
+                alt={name} 
+                className="w-full h-80 object-cover" 
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://placehold.co/400x320/e5e7eb/6b7280?text=Instrument+Image';
+                }}
+              />
+            </div>
+
+            {/* Technical Specifications - Below Image */}
+            {Object.keys(technicalSpecs).length > 0 && (
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 mb-6">Technical Specifications</h2>
+                <div className="grid grid-cols-1 gap-3">
+                  {Object.entries(technicalSpecs).map(([key, value]) => (
+                    <Card 
+                      key={key} 
+                      className="hover:shadow-sm transition-all duration-200 bg-white border border-slate-100"
+                    >
+                      <CardContent className="p-3">
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">
+                          {key}
+                        </p>
+                        <p className="text-base font-semibold">{value}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
           </div>
 
-          {/* Instrument Name */}
-          <div>
-            <h1 className="text-2xl font-bold mb-2">{name}</h1>
-            {manufacturer && (
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Manufacturer:</span> {manufacturer}
-              </p>
+          {/* RIGHT COLUMN: Name + Manufacturer/Model + Applications */}
+          <div className="space-y-8">
+            {/* Instrument Name & Details */}
+            <div className="space-y-4">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent leading-tight">
+                {name}
+              </h1>
+              {(manufacturer || modelNumber) && (
+                <div className="flex flex-wrap gap-6 text-base">
+                  {manufacturer && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-muted-foreground">Manufacturer:</span>
+                      <span className="font-medium">{manufacturer}</span>
+                    </div>
+                  )}
+                  {modelNumber && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-muted-foreground">Model:</span>
+                      <span className="font-medium">{modelNumber}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Applications - PRIMARY CONTENT (ENLARGED) */}
+            {applications.length > 0 && (
+              <div>
+                <h2 className="text-xl font-bold text-slate-900 mb-6">Applications</h2>
+                <div className="space-y-4">
+                  {applications.map((app, i) => (
+                    <Card 
+                      key={i} 
+                      className="bg-white hover:shadow-xl transition-all duration-300 hover:-translate-x-1 border-l-4 border-l-slate-400 hover:border-l-slate-600"
+                    >
+                      <CardContent className="p-5">
+                        <div className="flex items-start gap-4">
+                          <div className="rounded-full bg-slate-200 p-2.5 shrink-0 mt-0.5">
+                            <div className="h-2 w-2 rounded-full bg-slate-700" />
+                          </div>
+                          <p className="text-base leading-relaxed tracking-tight font-medium text-slate-900">{app}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             )}
-            {modelNumber && (
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Model:</span> {modelNumber}
-              </p>
+
+            {/* Sample Requirements - SUBORDINATE CARD (Hard-positioned below Applications) */}
+            {sampleRequirements && (
+              <div className="mt-8">
+                <h2 className="text-xl font-bold text-slate-900 mb-4">Sample Requirements</h2>
+                <Card className="bg-white border border-slate-200 border-l-4 border-l-slate-400 shadow-sm hover:shadow-md transition-all duration-200">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-md bg-slate-100 p-2 shrink-0">
+                        <AlertCircle className="h-3.5 w-3.5 text-slate-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-slate-900 mb-1 tracking-tight">Sample Preparation Guidelines</p>
+                        <p className="text-xs text-slate-700 leading-relaxed tracking-tight">{sampleRequirements}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </div>
         </div>
+      </div>
 
-        {/* RIGHT COLUMN: Stacked Sections */}
-        <div className="space-y-8">
-          {/* Overview */}
-          <section>
-            <h2 className="text-xl font-bold mb-3">Overview</h2>
-            <p className="text-muted-foreground leading-relaxed">
-              {overview || 'Details available on request.'}
-            </p>
-          </section>
+      {/* INFORMATION SPINE SECTIONS - Unified Alignment & Rhythm */}
+      <div className="space-y-16">
 
-          {/* Applications */}
-          <section>
-            <h2 className="text-xl font-bold mb-3">Applications</h2>
-            {applications.length > 0 ? (
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                {applications.map((app, i) => (
-                  <li key={i}>{app}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-muted-foreground">Details available on request.</p>
-            )}
-          </section>
-
-          {/* Sample Requirements */}
-          <section>
-            <h2 className="text-xl font-bold mb-3">Sample Requirements</h2>
-            <p className="text-muted-foreground leading-relaxed">
-              {sampleRequirements || 'Details available on request.'}
-            </p>
-          </section>
-
-          {/* Technical Specifications (Collapsible, Expanded by Default) */}
-          <section>
-            <Collapsible open={specsOpen} onOpenChange={setSpecsOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full group">
-                <h2 className="text-xl font-bold">Technical Specifications</h2>
-                <ChevronDown className={`h-5 w-5 transition-transform ${specsOpen ? 'rotate-180' : ''}`} />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3">
-                {Object.keys(technicalSpecs).length > 0 ? (
-                  <div className="border rounded-lg divide-y">
-                    {Object.entries(technicalSpecs).map(([key, value]) => (
-                      <div key={key} className="grid grid-cols-[140px_1fr] gap-4 p-3">
-                        <span className="font-medium text-sm">{key}</span>
-                        <span className="text-sm text-muted-foreground">{value}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">Details available on request.</p>
-                )}
-              </CollapsibleContent>
-            </Collapsible>
-          </section>
-
-          {/* Pricing (3 Equal Cards) */}
-          <section>
-            <h2 className="text-xl font-bold mb-3">Pricing</h2>
-            <p className="text-sm text-muted-foreground mb-4">Indicative rates (subject to change)</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    KBCNMU Students / Faculty
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-semibold">
-                    {priceInternal || 'Contact for details'}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Other Academic Institutions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-semibold">
-                    {priceExternal || 'Contact for details'}
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">
-                    Industry / Corporate (GST incl.)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-lg font-semibold">
-                    {priceIndustry || 'Contact for details'}
-                  </p>
-                </CardContent>
-              </Card>
+        {/* PRICING - THREE-COLUMN COMPARISON LAYOUT */}
+        <section 
+          id="pricing-section" 
+          data-animate 
+          className={visibleSections.has('pricing-section') ? 'visible' : ''}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Pricing</h2>
+            <div className="h-px w-8 bg-slate-300" />
+          </div>
+          <p className="text-xs text-slate-600 mb-6">Indicative rates (subject to change)</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            {/* KBCNMU Students / Faculty - Internal Card */}
+            <div className="bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-300 rounded-lg p-5">
+              <div className="mb-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Internal</span>
+              </div>
+              <h3 className="text-base font-semibold text-slate-900 mb-3 line-clamp-2 tracking-tight">KBCNMU Students / Faculty</h3>
+              <p className="text-2xl font-bold text-slate-900 leading-tight">{priceInternal || 'Contact for details'}</p>
             </div>
-          </section>
 
-          {/* Contact / Booking */}
-          <section>
-            <h2 className="text-xl font-bold mb-3">Contact / Booking</h2>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  {contactName && (
-                    <div>
-                      <p className="text-sm font-medium">Contact Person</p>
-                      <p className="text-muted-foreground">{contactName}</p>
-                    </div>
-                  )}
+            {/* Other Academic Institutions - Neutral Card */}
+            <div className="bg-white border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all duration-300 rounded-lg p-5">
+              <div className="mb-4 h-5" />
+              <h3 className="text-base font-semibold text-slate-900 mb-3 line-clamp-2 tracking-tight">Other Academic Institutions</h3>
+              <p className="text-2xl font-bold text-slate-900 leading-tight">{priceExternal || 'Contact for details'}</p>
+            </div>
+
+            {/* Industry / Corporate - Commercial Card */}
+            <div className="bg-white border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all duration-300 rounded-lg p-5">
+              <div className="mb-4">
+                <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Commercial</span>
+              </div>
+              <h3 className="text-base font-semibold text-slate-900 mb-3 line-clamp-2 tracking-tight">Industry / Corporate</h3>
+              <div className="space-y-1">
+                <p className="text-2xl font-bold text-slate-900 leading-tight">{priceIndustry || 'Contact for details'}</p>
+                <p className="text-xs text-slate-500 font-medium">GST included</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CONTACT INFORMATION - INFORMATION SPINE ALIGNED */}
+        <section 
+          id="contact-section" 
+          data-animate 
+          className={visibleSections.has('contact-section') ? 'visible' : ''}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="text-xl font-bold text-slate-900">Contact Information</h2>
+            <div className="h-px w-8 bg-slate-300" />
+          </div>
+          <Card className="shadow-sm border border-slate-200 hover:shadow-md transition-all duration-200">
+            <CardContent className="pt-6 pb-6">
+              <div className="space-y-5">
+                {contactName && (
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">Instrument Contact</p>
+                    <p className="text-lg font-bold text-slate-900">{contactName}</p>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   {contactEmail && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <a
-                        href={buildGmailUrl({
-                          to: contactEmail,
-                          cc: 'bhushan.food@gmail.com',
-                          subject: `Instrument Contact – ${name}`,
-                          body: ''
-                        })}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        {contactEmail}
-                      </a>
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-white border border-slate-100">
+                      <div className="rounded-full bg-slate-100 p-2.5">
+                        <Mail className="h-4 w-4 text-slate-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-xs text-slate-600 mb-1 font-medium">Email</p>
+                        <p className="font-semibold text-sm text-slate-900 break-all leading-tight">{contactEmail}</p>
+                      </div>
                     </div>
                   )}
                   {contactPhone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <a href={`tel:${contactPhone}`} className="text-primary hover:underline">
-                        {contactPhone}
-                      </a>
+                    <div className="flex items-center gap-4 p-4 rounded-lg bg-white border border-slate-100">
+                      <div className="rounded-full bg-slate-100 p-2.5">
+                        <Phone className="h-4 w-4 text-slate-600" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-slate-600 mb-1 font-medium">Phone</p>
+                        <p className="font-semibold text-sm text-slate-900 leading-tight">{contactPhone}</p>
+                      </div>
                     </div>
                   )}
-                  <div className="pt-2">
-                    <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
-                      <DialogTrigger asChild>
-                        <Button className="w-full">Book this instrument</Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle>Book {name}</DialogTitle>
-                          <DialogDescription>
-                            Select your category and provide required details. A Gmail draft will be generated.
-                          </DialogDescription>
-                        </DialogHeader>
-                        
-                        <div className="space-y-6">
-                          {/* User Category Selection (MANDATORY) */}
-                          <div>
-                            <Label htmlFor="userCategory" className="text-base font-semibold">
-                              User Category <span className="text-destructive">*</span>
-                            </Label>
-                            <Select value={userCategory} onValueChange={handleCategoryChange}>
-                              <SelectTrigger id="userCategory" className="mt-2">
-                                <SelectValue placeholder="Select your category" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="KBCNMU (Internal Users)">KBCNMU (Internal Users)</SelectItem>
-                                <SelectItem value="External Academic Institutions">External Academic Institutions</SelectItem>
-                                <SelectItem value="Industry / Corporate">Industry / Corporate</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {/* Category-Specific Guidelines */}
-                          {userCategory && categoryGuidelines[userCategory] && (
-                            <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
-                              <div className="flex items-start gap-2">
-                                <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
-                                <div>
-                                  <h4 className="font-semibold text-blue-900 mb-2">Mandatory Requirements</h4>
-                                  <ul className="space-y-1 text-sm text-blue-800">
-                                    {categoryGuidelines[userCategory].map((guideline, i) => (
-                                      <li key={i} className="flex items-start">
-                                        <span className="mr-2">•</span>
-                                        <span>{guideline}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Booking Form Fields (disabled until category selected) */}
-                          <div className={!userCategory ? 'opacity-50 pointer-events-none' : ''}>
-                            <div className="space-y-4">
-                              <div>
-                                <Label htmlFor="fullName">Full Name <span className="text-destructive">*</span></Label>
-                                <Input
-                                  id="fullName"
-                                  value={fullName}
-                                  onChange={(e) => setFullName(e.target.value)}
-                                  placeholder="Your full name"
-                                  disabled={!userCategory}
-                                  required
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <Label htmlFor="userEmail">Email <span className="text-destructive">*</span></Label>
-                                  <Input
-                                    id="userEmail"
-                                    type="email"
-                                    value={userEmail}
-                                    onChange={(e) => setUserEmail(e.target.value)}
-                                    placeholder="your@email.com"
-                                    disabled={!userCategory}
-                                    required
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="userPhone">Phone <span className="text-destructive">*</span></Label>
-                                  <Input
-                                    id="userPhone"
-                                    type="tel"
-                                    value={userPhone}
-                                    onChange={(e) => setUserPhone(e.target.value)}
-                                    placeholder="+91 XXXXXXXXXX"
-                                    disabled={!userCategory}
-                                    required
-                                  />
-                                </div>
-                              </div>
-
-                              <div>
-                                <Label htmlFor="institution">
-                                  Institution / Company Name <span className="text-destructive">*</span>
-                                </Label>
-                                <Input
-                                  id="institution"
-                                  value={institution}
-                                  onChange={(e) => setInstitution(e.target.value)}
-                                  placeholder="e.g., KBCNMU or ABC Research Institute"
-                                  disabled={!userCategory}
-                                  required
-                                />
-                              </div>
-
-                              <div>
-                                <Label htmlFor="instrumentName">Instrument Name</Label>
-                                <Input
-                                  id="instrumentName"
-                                  value={name}
-                                  readOnly
-                                  disabled
-                                  className="bg-muted"
-                                />
-                              </div>
-
-                              <div>
-                                <Label htmlFor="purpose">
-                                  Purpose of Analysis <span className="text-destructive">*</span>
-                                </Label>
-                                <Textarea
-                                  id="purpose"
-                                  value={purpose}
-                                  onChange={(e) => setPurpose(e.target.value)}
-                                  placeholder="Clearly describe the purpose and expected outcomes"
-                                  rows={3}
-                                  disabled={!userCategory}
-                                  required
-                                />
-                              </div>
-
-                              <div>
-                                <Label htmlFor="sampleDetails">
-                                  Sample Details <span className="text-destructive">*</span>
-                                </Label>
-                                <Textarea
-                                  id="sampleDetails"
-                                  value={sampleDetails}
-                                  onChange={(e) => setSampleDetails(e.target.value)}
-                                  placeholder="Sample type, quantity, preparation method, etc."
-                                  rows={3}
-                                  disabled={!userCategory}
-                                  required
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {bookingError && (
-                            <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3">
-                              <p className="text-sm text-destructive font-medium">{bookingError}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        <DialogFooter>
-                          <DialogClose asChild>
-                            <Button variant="ghost">Cancel</Button>
-                          </DialogClose>
-                          <Button 
-                            onClick={handleBooking}
-                            disabled={!userCategory}
-                          >
-                            Generate Email Draft
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </section>
-        </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* BOOKING CTA - Separated Section */}
+        <section 
+          id="booking-section" 
+          data-animate 
+          className={visibleSections.has('booking-section') ? 'visible' : ''}
+        >
+          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-2 border-primary/20 shadow-xl">
+            <CardContent className="pt-8 pb-8">
+              <div className="text-center space-y-6">
+                <div>
+                  <h3 className="text-2xl font-bold mb-2">Ready to Book?</h3>
+                  <p className="text-muted-foreground">
+                    Complete the booking form to request instrument access
+                  </p>
+                </div>
+                <Dialog open={isBookingOpen} onOpenChange={setIsBookingOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="lg" className="text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all">
+                      Book this Instrument
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Book {name}</DialogTitle>
+                      <DialogDescription>
+                        Select your category and provide required details. A Gmail draft will be generated.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-6">
+                      {/* User Category Selection (MANDATORY) */}
+                      <div>
+                        <Label htmlFor="userCategory" className="text-base font-semibold">
+                          User Category <span className="text-destructive">*</span>
+                        </Label>
+                        <Select value={userCategory} onValueChange={handleCategoryChange}>
+                          <SelectTrigger id="userCategory" className="mt-2">
+                            <SelectValue placeholder="Select your category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="KBCNMU (Internal Users)">KBCNMU (Internal Users)</SelectItem>
+                            <SelectItem value="External Academic Institutions">External Academic Institutions</SelectItem>
+                            <SelectItem value="Industry / Corporate">Industry / Corporate</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Category-Specific Guidelines */}
+                      {userCategory && categoryGuidelines[userCategory] && (
+                        <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4">
+                          <div className="flex items-start gap-2">
+                            <Info className="h-5 w-5 text-blue-600 mt-0.5 shrink-0" />
+                            <div>
+                              <h4 className="font-semibold text-blue-900 mb-2">Mandatory Requirements</h4>
+                              <ul className="space-y-1 text-sm text-blue-800">
+                                {categoryGuidelines[userCategory].map((guideline, i) => (
+                                  <li key={i} className="flex items-start">
+                                    <span className="mr-2">•</span>
+                                    <span>{guideline}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Booking Form Fields (disabled until category selected) */}
+                      <div className={!userCategory ? 'opacity-50 pointer-events-none' : ''}>
+                        <div className="space-y-4">
+                          <div>
+                            <Label htmlFor="fullName">Full Name <span className="text-destructive">*</span></Label>
+                            <Input
+                              id="fullName"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              placeholder="Your full name"
+                              disabled={!userCategory}
+                              required
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="userEmail">Email <span className="text-destructive">*</span></Label>
+                              <Input
+                                id="userEmail"
+                                type="email"
+                                value={userEmail}
+                                onChange={(e) => setUserEmail(e.target.value)}
+                                placeholder="your@email.com"
+                                disabled={!userCategory}
+                                required
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor="userPhone">Phone <span className="text-destructive">*</span></Label>
+                              <Input
+                                id="userPhone"
+                                type="tel"
+                                value={userPhone}
+                                onChange={(e) => setUserPhone(e.target.value)}
+                                placeholder="+91 XXXXXXXXXX"
+                                disabled={!userCategory}
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <Label htmlFor="institution">
+                              Institution / Company Name <span className="text-destructive">*</span>
+                            </Label>
+                            <Input
+                              id="institution"
+                              value={institution}
+                              onChange={(e) => setInstitution(e.target.value)}
+                              placeholder="e.g., KBCNMU or ABC Research Institute"
+                              disabled={!userCategory}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="instrumentName">Instrument Name</Label>
+                            <Input
+                              id="instrumentName"
+                              value={name}
+                              readOnly
+                              disabled
+                              className="bg-muted"
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="purpose">
+                              Purpose of Analysis <span className="text-destructive">*</span>
+                            </Label>
+                            <Textarea
+                              id="purpose"
+                              value={purpose}
+                              onChange={(e) => setPurpose(e.target.value)}
+                              placeholder="Clearly describe the purpose and expected outcomes"
+                              rows={3}
+                              disabled={!userCategory}
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <Label htmlFor="sampleDetails">
+                              Sample Details <span className="text-destructive">*</span>
+                            </Label>
+                            <Textarea
+                              id="sampleDetails"
+                              value={sampleDetails}
+                              onChange={(e) => setSampleDetails(e.target.value)}
+                              placeholder="Sample type, quantity, preparation method, etc."
+                              rows={3}
+                              disabled={!userCategory}
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {bookingError && (
+                        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3">
+                          <p className="text-sm text-destructive font-medium">{bookingError}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="ghost">Cancel</Button>
+                      </DialogClose>
+                      <Button 
+                        onClick={handleBooking}
+                        disabled={!userCategory}
+                      >
+                        Generate Email Draft
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </div>
   );
