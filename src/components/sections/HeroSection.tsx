@@ -49,7 +49,10 @@ export function HeroSection() {
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          From Kavayitri Bahinabai Chaudhari North Maharashtra University, Jalgaon – Empowering Innovation Through Precision Analysis. Access state-of-the-art instrumentation and expert characterization services at KBCNMU, Jalgaon. We bridge the gap between advanced research and actionable data.
+          <span className="block text-xl md:text-2xl font-bold text-white mb-3 bg-gradient-to-r from-secondary to-emerald-300 bg-clip-text text-transparent">
+            Kavayitri Bahinabai Chaudhari North Maharashtra University, Jalgaon
+          </span>
+          Empowering Innovation Through Precision Analysis. Access state-of-the-art instrumentation and expert characterization services at KBCNMU, Jalgaon. We bridge the gap between advanced research and actionable data.
         </p>
 
         {/* CTA Buttons */}
@@ -70,8 +73,8 @@ export function HeroSection() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto animate-fade-in" style={{ animationDelay: '0.6s' }}>
           {[
-            { value: '15+', label: 'Instruments' },
-            { value: '500+', label: 'Samples/Month' },
+            { value: '20+', label: 'Instruments' },
+            { value: '500+', label: 'Samples' },
             { value: '100+', label: 'Research Papers' },
             { value: '50+', label: 'Partner Institutions' },
           ].map((stat) => (

@@ -46,7 +46,7 @@ export default function DepartmentsList() {
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Slug</TableHead>
+            <TableHead>Department Code</TableHead>
             <TableHead>Coordinator</TableHead>
             <TableHead>Active</TableHead>
             <TableHead>Actions</TableHead>
@@ -56,12 +56,12 @@ export default function DepartmentsList() {
           {departments.map((d) => (
             <TableRow key={d.id}>
               <TableCell>{d.name}</TableCell>
-              <TableCell>{d.slug}</TableCell>
+              <TableCell>{d.department_code}</TableCell>
               <TableCell>{d.coordinator_email}</TableCell>
               <TableCell>{d.active ? 'Yes' : 'No'}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <Button variant="ghost" onClick={() => navigate(`/admin/departments/${d.slug}`)}>Edit</Button>
+                  <Button variant="ghost" onClick={() => navigate(`/admin/departments/${d.department_code}`)}>Edit</Button>
                   <Button variant="destructive" onClick={() => handleDelete(d.id!)} disabled={deleting === d.id}>{deleting === d.id ? 'Deleting...' : 'Delete'}</Button>
                 </div>
               </TableCell>

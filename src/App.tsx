@@ -42,6 +42,7 @@ import DepartmentsListPage from "./pages/admin/DepartmentsList";
 import DepartmentFormPage from "./pages/admin/DepartmentForm";
 import ConsultancyPage from "./pages/Consultancy";
 import DepartmentDetailPage from "./pages/DepartmentDetail";
+import FacultyDetailPage from "./pages/FacultyDetail";
 
 const queryClient = new QueryClient();
 
@@ -68,7 +69,8 @@ const App = () => (
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/submit-request" element={<SubmitRequestPage />} />
               <Route path="/consultancy" element={<ConsultancyPage />} />
-              <Route path="/departments/:slug" element={<DepartmentDetailPage />} />
+              <Route path="/consultancy/:departmentCode" element={<DepartmentDetailPage />} />
+              <Route path="/consultancy/:departmentCode/faculty/:consultantCode" element={<FacultyDetailPage />} />
               <Route path="/components" element={<ComponentsPage />} />
               <Route path="/components/:slug" element={<ComponentDetailPage />} />
             </Route>
@@ -93,7 +95,7 @@ const App = () => (
               <Route path="enquiries" element={<EnquiriesListPage />} />
               <Route path="departments" element={<DepartmentsListPage />} />
               <Route path="departments/new" element={<DepartmentFormPage />} />
-              <Route path="departments/:slug" element={<DepartmentFormPage />} />
+              <Route path="departments/:departmentCode" element={<DepartmentFormPage />} />
               <Route path="components" element={<ComponentsListPage />} />
               <Route path="components/new" element={<ComponentFormPage />} />
               <Route path="components/:id" element={<ComponentFormPage />} />

@@ -53,12 +53,14 @@ export function InstrumentsSection({ featuredOnly = false }: { featuredOnly?: bo
           throw error;
         }
         if (cancelled) return;
+        const SUPABASE_PUBLIC_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public`;
         const mapped: Instrument[] = (data || []).map((row: any) => {
           const code: string = row?.code || row?.id || '';
           const name: string = row?.name || '';
           const dept: string = row?.category || '';
           const desc: string = row?.description || row?.short_description || '';
-          const img = imageByName.get((name || code || '').toLowerCase());
+          const filename = row?.image_filenames;
+          const img = filename ? `${SUPABASE_PUBLIC_URL}/instrument_raw/${encodeURIComponent(filename)}` : undefined;
           return {
             id: code || name || crypto.randomUUID(),
             name,
@@ -70,6 +72,7 @@ export function InstrumentsSection({ featuredOnly = false }: { featuredOnly?: bo
             pricingNote: '',
             contactEmail: row?.coordinator_email || '',
             image: img,
+            image_filenames: filename,
           } as Instrument;
         });
         setItems(mapped);
@@ -128,14 +131,6 @@ export function InstrumentsSection({ featuredOnly = false }: { featuredOnly?: bo
           {error && (
             <div className="col-span-1 md:col-span-2 lg:col-span-3 text-center text-destructive">{error}</div>
           )}
-        </div>
-
-        {/* View All Button */}
-        <div className="text-center mt-12">
-          <Button variant="outline" size="lg">
-            View All Instruments
-            <ArrowRight size={18} className="ml-2" />
-          </Button>
         </div>
       </div>
     </section>

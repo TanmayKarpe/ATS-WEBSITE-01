@@ -1,32 +1,50 @@
 import { supabase } from '@/supabase/client'
 
 export type Department = {
-  id?: string
-  slug: string
+  id: string
   name: string
+  department_code: string
+  is_active: boolean
+  coordinator_email?: string
   description?: string | null
-  coordinator_email: string
-  active?: boolean
 }
 
-export async function listDepartments() {
-  const { data, error } = await supabase.from('departments').select('*').eq('active', true).order('name', { ascending: true })
+export async function getActiveDepartments(): Promise<Department[]> {
+  const { data, error } = await supabase
+    .from('departments')
+    .select('*')
+    .eq('is_active', true)
+    .order('name', { ascending: true })
+  
   if (error) throw error
   return data as Department[]
 }
 
-export async function getDepartments() {
-  return listDepartments()
+export async function listDepartments() {
+  return getActiveDepartments()
 }
 
-export async function getDepartmentBySlug(slug: string) {
-  const { data, error } = await supabase.from('departments').select('*').eq('slug', slug).single()
+export async function getDepartments() {
+  return getActiveDepartments()
+}
+
+export async function getDepartmentByCode(departmentCode: string): Promise<Department | null> {
+  const { data, error } = await supabase
+    .from('departments')
+    .select('*')
+    .eq('department_code', departmentCode)
+    .single()
+  
   if (error && error.code !== 'PGRST116') throw error
   return data as Department | null
 }
 
 export async function listAllDepartments() {
-  const { data, error } = await supabase.from('departments').select('*').order('name', { ascending: true })
+  const { data, error } = await supabase
+    .from('departments')
+    .select('*')
+    .order('name', { ascending: true })
+  
   if (error) throw error
   return data as Department[]
 }

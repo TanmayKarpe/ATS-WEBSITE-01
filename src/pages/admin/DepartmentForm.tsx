@@ -5,32 +5,32 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Loader2 } from 'lucide-react'
-import { createDepartment, getDepartmentBySlug, updateDepartment, Department } from '@/services/departments'
+import { createDepartment, getDepartmentByCode, updateDepartment, Department } from '@/services/departments'
 
 export default function DepartmentForm() {
-  const { slug } = useParams<{ slug?: string }>()
-  const isNew = slug === 'new' || !slug
+  const { departmentCode } = useParams<{ departmentCode?: string }>()
+  const isNew = departmentCode === 'new' || !departmentCode
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [department, setDepartment] = useState<Department>({ slug: '', name: '', description: '', coordinator_email: '', active: true })
+  const [department, setDepartment] = useState<Department>({ department_code: '', name: '', description: '', coordinator_email: '', active: true })
   const [formErrors, setFormErrors] = useState<{ name?: string; slug?: string; coordinator_email?: string } | null>(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!isNew && slug) {
+    if (!isNew && departmentCode) {
       setLoading(true)
-      getDepartmentBySlug(slug)
+      getDepartmentByCode(departmentCode)
         .then((d) => { if (d) setDepartment(d) })
         .catch((err) => setError(err.message || 'Failed to load'))
         .finally(() => setLoading(false))
     }
-  }, [slug])
+  }, [departmentCode])
 
   const validate = () => {
     const errs: any = {}
     if (!department.name?.trim()) errs.name = 'Name is required'
-    if (!department.slug?.trim()) errs.slug = 'Slug is required'
+    if (!department.department_code?.trim()) errs.department_code = 'Department Code is required'
     if (!department.coordinator_email?.trim()) errs.coordinator_email = 'Coordinator email is required'
     setFormErrors(Object.keys(errs).length ? errs : null)
     return Object.keys(errs).length === 0
@@ -64,9 +64,9 @@ export default function DepartmentForm() {
         {formErrors?.name && <div className="text-sm text-red-600">{formErrors.name}</div>}
       </div>
       <div>
-        <Label htmlFor="slug">Slug</Label>
-        <Input id="slug" value={department.slug} onChange={(e) => setDepartment({ ...department, slug: e.target.value })} />
-        {formErrors?.slug && <div className="text-sm text-red-600">{formErrors.slug}</div>}
+        <Label htmlFor="department_code">Department Code (e.g., SOES, SOLS, CS)</Label>
+        <Input id="department_code" value={department.department_code} onChange={(e) => setDepartment({ ...department, department_code: e.target.value })} disabled={!isNew} />
+        {formErrors?.department_code && <div className="text-sm text-red-600">{formErrors.department_code}</div>}
       </div>
       <div>
         <Label htmlFor="description">Description</Label>
@@ -78,7 +78,7 @@ export default function DepartmentForm() {
         {formErrors?.coordinator_email && <div className="text-sm text-red-600">{formErrors.coordinator_email}</div>}
       </div>
       <div className="flex gap-2">
-        <Button onClick={handleSave} disabled={saving || !department.name || !department.slug || !department.coordinator_email}>{saving ? 'Saving...' : 'Save'}</Button>
+        <Button onClick={handleSave} disabled={saving || !department.name || !department.department_code || !department.coordinator_email}>{saving ? 'Saving...' : 'Save'}</Button>
         <Button variant="ghost" onClick={() => navigate('/admin/departments')}>Cancel</Button>
       </div>
     </div>

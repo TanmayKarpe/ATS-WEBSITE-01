@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertCircle, Mail, Phone, Info } from 'lucide-react';
-import { buildGmailUrl } from '@/lib/email';
+import { openEmailDraft } from '@/lib/emailDraft';
 
 export default function InstrumentDetailPage() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -21,6 +21,7 @@ export default function InstrumentDetailPage() {
   const [fullName, setFullName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userPhone, setUserPhone] = useState('');
+  const [prn, setPrn] = useState('');
   const [institution, setInstitution] = useState('');
   const [purpose, setPurpose] = useState('');
   const [sampleDetails, setSampleDetails] = useState('');
@@ -108,6 +109,15 @@ export default function InstrumentDetailPage() {
     return () => observer.disconnect();
   }, [row]);
 
+  // Single image derived from instrument title (<Instrument Title>.png)
+  const SUPABASE_PUBLIC_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public`;
+  const filename = row?.image_filenames;
+  const imageUrl = filename
+    ? `${SUPABASE_PUBLIC_URL}/instrument_raw/${encodeURIComponent(filename)}`
+    : `/placeholder.svg`;
+
+  console.log(row?.name || code, row?.image_filenames);
+
   if (loading) return <div className="container py-12 text-muted-foreground">Loading…</div>;
   
   if (error || !row) {
@@ -147,7 +157,6 @@ export default function InstrumentDetailPage() {
   const priceInternal = row?.price_internal || null;
   const priceExternal = row?.price_external || null;
   const priceIndustry = row?.price_industry || null;
-  const image = imageByName.get((name || code || '').toLowerCase()) || '/placeholder-instrument.svg';
   
   // Parse applications (array or text)
   let applications: string[] = [];
@@ -221,6 +230,7 @@ export default function InstrumentDetailPage() {
     setFullName('');
     setUserEmail('');
     setUserPhone('');
+    setPrn('');
     setInstitution('');
     setPurpose('');
     setSampleDetails('');
@@ -230,63 +240,51 @@ export default function InstrumentDetailPage() {
   const handleBooking = () => {
     setBookingError(null);
     
-    // Validation
     if (!userCategory) return setBookingError('Please select your user category');
     if (!fullName.trim()) return setBookingError('Full name is required');
     if (!userEmail.trim()) return setBookingError('Email is required');
     if (!userPhone.trim()) return setBookingError('Phone number is required');
+    if (userCategory === 'KBCNMU (Internal Users)' && !prn.trim()) return setBookingError('PRN is required for internal users');
     if (!institution.trim()) return setBookingError('Institution / Company name is required');
     if (!purpose.trim()) return setBookingError('Purpose of analysis is required');
     if (!sampleDetails.trim()) return setBookingError('Sample details are required');
+    const subject = `Instrument Request – ${name}`;
+
+    const prnLine = userCategory === 'KBCNMU (Internal Users)' && prn.trim() ? `PRN: ${prn}\n` : '';
     
-    const coordinatorEmail = 'bhushan.food@gmail.com'; // ATS Coordinator
-    const subject = `Booking Request – ${userCategory} – ${name}`;
-    
-    const body = `Request Category:
-${userCategory}
+    const body = `
+Dear Sir/Madam,
 
-Instrument Requested:
-${name}
+I would like to request the following service:
 
-Requester Details:
-Name: ${fullName}
-Institution / Company: ${institution}
-Email: ${userEmail}
-Phone: ${userPhone}
-
+Instrument: ${name}
 Purpose of Analysis:
 ${purpose}
 
 Sample Details:
 ${sampleDetails}
 
-Mandatory Documents to be Attached:
-- Official request letter as per category
-- Authorized signature
-- Any supporting documents
+User Details:
+Name: ${fullName}
+${prnLine}Institution: ${institution}
+Phone: ${userPhone}
+Email: ${userEmail}
 
----
-This request was generated through the ATS website.`;
-    
-    // Generate mailto link with both recipient and CC
-    const gmailUrl = buildGmailUrl({
-      to: contactEmail,
-      cc: coordinatorEmail,
-      subject,
-      body,
-    });
+Regards,
+${fullName}
+`.trim();
+
+    openEmailDraft('ats@nmu.ac.in', subject, body)
+
     setIsBookingOpen(false);
-    
-    // Reset form after submission
     setUserCategory('');
     setFullName('');
     setUserEmail('');
     setUserPhone('');
+    setPrn('');
     setInstitution('');
     setPurpose('');
     setSampleDetails('');
-    
-    window.open(gmailUrl, '_blank', 'noopener');
   };
 
   return (
@@ -316,15 +314,16 @@ This request was generated through the ATS website.`;
           {/* LEFT COLUMN: Image + Technical Specifications */}
           <div className="space-y-8">
             {/* Instrument Image */}
-            <div className="rounded-xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 shadow-2xl ring-1 ring-black/5">
+            <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-muted to-muted/50 shadow-2xl ring-1 ring-black/5">
               <img 
-                src={image} 
+                src={imageUrl}
                 alt={name} 
-                className="w-full h-80 object-cover" 
+                className="w-full h-80 object-cover filter saturate-[0.94] contrast-[1.03] blur-[0.45px]" 
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://placehold.co/400x320/e5e7eb/6b7280?text=Instrument+Image';
+                  e.currentTarget.src = `/placeholder.svg`;
                 }}
               />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/15" />
             </div>
 
             {/* Technical Specifications - Below Image */}
@@ -541,7 +540,7 @@ This request was generated through the ATS website.`;
                     <DialogHeader>
                       <DialogTitle>Book {name}</DialogTitle>
                       <DialogDescription>
-                        Select your category and provide required details. A Gmail draft will be generated.
+                        Select your category and provide required details. An email draft will be opened in your default email client.
                       </DialogDescription>
                     </DialogHeader>
                     
@@ -624,6 +623,20 @@ This request was generated through the ATS website.`;
                               />
                             </div>
                           </div>
+
+                          {userCategory === 'KBCNMU (Internal Users)' && (
+                            <div>
+                              <Label htmlFor="prn">PRN <span className="text-destructive">*</span></Label>
+                              <Input
+                                id="prn"
+                                value={prn}
+                                onChange={(e) => setPrn(e.target.value)}
+                                placeholder="Enter your PRN"
+                                disabled={!userCategory}
+                                required
+                              />
+                            </div>
+                          )}
 
                           <div>
                             <Label htmlFor="institution">

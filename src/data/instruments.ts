@@ -16,6 +16,7 @@ export type Instrument = {
   pricingNote: string;
   contactEmail: string;
   image?: string;
+  image_filenames?: string;
 };
 
 export const instruments: Instrument[] = [

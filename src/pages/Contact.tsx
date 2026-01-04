@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Mail, Phone, MapPin } from 'lucide-react';
-import { buildGmailUrl } from '@/lib/email';
+import { openEmailDraft } from '@/lib/emailDraft';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -14,8 +14,7 @@ export default function ContactPage() {
     message: '',
   });
 
-  const coordinatorEmail = 'bhushan.food@gmail.com';
-  const atsEmail = 'ats@nmu.ac.in';
+  const contactEmail = 'ats@nmu.ac.in';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -24,15 +23,23 @@ export default function ContactPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const recipients = [coordinatorEmail, atsEmail];
-      console.log('Form submitted:', { ...formData, recipients });
-      alert('Your message has been submitted to the ATS Coordinator. He will reply as early as possible.');
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch (error) {
-      console.error('Failed to submit contact form', error);
-      alert('Something went wrong. Please try again.');
-    }
+
+    const body = [
+      'Context: General enquiry',
+      '',
+      `Name: ${formData.name || 'N/A'}`,
+      `Email: ${formData.email || 'N/A'}`,
+      `Subject: ${formData.subject || 'N/A'}`,
+      'Message:',
+      formData.message || 'N/A',
+      '',
+      'Regards,',
+      formData.name || 'ATS Enquiry',
+    ].join('\n');
+
+    openEmailDraft('ats@nmu.ac.in', `ATS Enquiry – ${formData.subject || 'Contact Request'}`, body);
+
+    setFormData({ name: '', email: '', subject: '', message: '' });
   };
 
   return (
@@ -79,19 +86,13 @@ export default function ContactPage() {
                     <Mail className="text-primary shrink-0" size={24} />
                     <div>
                       <h3 className="font-semibold mb-1">Coordinator Email</h3>
-                      <a
-                        href={buildGmailUrl({
-                          to: coordinatorEmail,
-                          cc: coordinatorEmail,
-                          subject: 'ATS Enquiry – KBCNMU Coordinator',
-                          body: ''
-                        })}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary hover:underline"
+                      <button
+                        type="button"
+                        onClick={() => openEmailDraft('ats@nmu.ac.in', 'ATS Enquiry – KBCNMU', 'Hello, I have an enquiry.\n\nThanks,')}
+                        className="text-primary hover:underline text-left p-0 bg-transparent border-none"
                       >
-                        {coordinatorEmail}
-                      </a>
+                        {contactEmail}
+                      </button>
                     </div>
                   </div>
                 </CardContent>
@@ -116,35 +117,11 @@ export default function ContactPage() {
               <Card>
                 <CardContent className="p-5">
                   <div className="flex gap-4">
-                    <Mail className="text-primary shrink-0" size={24} />
-                    <div>
-                      <h3 className="font-semibold mb-1">General Email</h3>
-                      <a
-                        href={buildGmailUrl({
-                          to: atsEmail,
-                          cc: coordinatorEmail,
-                          subject: 'ATS Enquiry – General',
-                          body: ''
-                        })}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        {atsEmail}
-                      </a>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-5">
-                  <div className="flex gap-4">
                     <Phone className="text-primary shrink-0" size={24} />
                     <div>
                       <h3 className="font-semibold mb-1">Phone</h3>
-                      <a href="tel:+912572257451" className="text-primary hover:underline">
-                        +91 257 2257451
+                      <a href="tel:+9102572257250" className="text-primary hover:underline">
+                        +91-0257-2257250
                       </a>
                     </div>
                   </div>

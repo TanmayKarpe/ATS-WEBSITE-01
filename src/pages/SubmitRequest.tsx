@@ -45,6 +45,13 @@ const disclaimers = [
   'Users are responsible for accurate information',
 ];
 
+const consultancyPoints = [
+  'Experienced consultants available across multiple domains',
+  'Guidance on experimental design and instrument selection',
+  'Support for data interpretation and methodology refinement',
+  'Industry-specific testing advice for compliance and QA needs',
+];
+
 const nextSteps = [
   'Review guidelines',
   'Choose instrument',
@@ -184,6 +191,38 @@ export default function SubmitRequestPage() {
               </Card>
             );
           })()}
+        </section>
+
+        <section className="space-y-4 bg-card/30 rounded-2xl p-6 md:p-8">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <p className="text-sm uppercase tracking-wide text-primary font-semibold">Consultancy Support</p>
+              <h2 className="text-2xl font-bold">Expert guidance when you need it</h2>
+            </div>
+            <span className="text-sm text-muted-foreground">Available before or after you submit samples.</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {consultancyPoints.map((point, index) => {
+              const { ref, inView } = useInView({ threshold: 0.12, once: true });
+              return (
+                <Card
+                  key={point}
+                  ref={ref as any}
+                  className={`h-full transition-all duration-600 ease-out ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'}`}
+                >
+                  <CardContent className="pt-5 flex items-start gap-3 text-sm text-muted-foreground">
+                    <span className="mt-1 h-2 w-2 rounded-full bg-primary" aria-hidden />
+                    <span>{point}</span>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+          <div className="flex justify-start">
+            <Link to="/consultancy">
+              <Button size="lg" className="transition-all duration-300 hover:shadow-lg">Contact ATS for Consultancy</Button>
+            </Link>
+          </div>
         </section>
 
         <section className="space-y-4 bg-card/30 rounded-2xl p-6 md:p-8">
