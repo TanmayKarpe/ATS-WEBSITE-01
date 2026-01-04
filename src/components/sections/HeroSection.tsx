@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import heroBg from '@/assets/hero-bg.jpg';
+import { LOGOS } from '@/config/logos';
 
 export function HeroSection() {
   return (
@@ -31,6 +32,27 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 md:px-6 text-center text-white">
+        {/* Institutional Identity Row */}
+        <div className="flex items-center justify-center gap-4 md:gap-5 py-3 md:py-4 mb-6 opacity-90">
+          <div className="rounded-full p-2 md:p-3" style={{ backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <img
+              src={LOGOS.ats}
+              alt="ATS Logo"
+              className="w-14 h-14 md:w-24 md:h-24 rounded-full object-cover"
+            />
+          </div>
+          <span className="text-lg md:text-xl lg:text-2xl font-semibold md:font-bold text-white/90 whitespace-nowrap" style={{ fontSize: 'clamp(1.1rem, 2vw, 1.6rem)' }}>
+            Kavayitri Bahinabai Chaudhari North Maharashtra University
+          </span>
+          <div className="rounded-full p-2 md:p-3" style={{ backgroundColor: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <img
+              src={LOGOS.university}
+              alt="University Logo"
+              className="w-14 h-14 md:w-24 md:h-24 rounded-full object-cover"
+            />
+          </div>
+        </div>
+
         {/* Badge */}
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-8 animate-fade-in">
           <Sparkles size={16} className="text-secondary" />
@@ -49,9 +71,6 @@ export function HeroSection() {
 
         {/* Subtitle */}
         <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-10 leading-relaxed animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <span className="block text-xl md:text-2xl font-bold text-white mb-3 bg-gradient-to-r from-secondary to-emerald-300 bg-clip-text text-transparent">
-            Kavayitri Bahinabai Chaudhari North Maharashtra University, Jalgaon
-          </span>
           Empowering Innovation Through Precision Analysis. Access state-of-the-art instrumentation and expert characterization services at KBCNMU, Jalgaon. We bridge the gap between advanced research and actionable data.
         </p>
 

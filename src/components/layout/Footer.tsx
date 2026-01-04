@@ -124,7 +124,7 @@ export function Footer() {
         <div className="container mx-auto px-4 md:px-6 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-primary-foreground/60 text-center md:text-left">
-              © 2025 ATS - KBCNMU Jalgaon. All rights reserved.
+              © {new Date().getFullYear()} ATS - KBCNMU Jalgaon. All rights reserved.
             </p>
             <div className="flex items-center gap-6">
               <a href="#" className="text-sm text-primary-foreground/60 hover:text-secondary transition-colors">
